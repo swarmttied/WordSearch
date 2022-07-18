@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using static System.Console;
 using WordSearch;
+using System.Text;
 
 namespace WordPuzzleApp
 {
@@ -50,8 +51,11 @@ namespace WordPuzzleApp
 
             try
             {
-                int matrixWidth;
-                string puzzleContent = GetPuzzle(puzzlePath, out matrixWidth);
+                
+                DisplayPuzzle(puzzlePath, out string[] puzzleLines);
+                int matrixWidth = puzzleLines[0].Length;
+                string puzzleContent = CreatePuzzleInput(puzzleLines);
+                WriteLine(Environment.NewLine);
                 string[] words = GetWords(listPath);
 
                 WordPuzzle puzzle = new WordPuzzle(puzzleContent, matrixWidth);
@@ -60,7 +64,7 @@ namespace WordPuzzleApp
                 {
                     var res = puzzle.FindWord(word);
                     if (res != null)
-                        WriteLine(res);
+                        WriteLine($"{word} {res}");
                 }
             }
             catch (Exception ex)
@@ -73,7 +77,7 @@ namespace WordPuzzleApp
             }
 
 
-            WriteLine("\n\nRunning time: {0}", (DateTime.Now - startTime).TotalMilliseconds);
+            WriteLine("\n\nRunning time: {0} ms", (DateTime.Now - startTime).TotalMilliseconds);
 
 #if DEBUG
             WriteLine("\n\nPress any key...");
@@ -81,17 +85,27 @@ namespace WordPuzzleApp
 #endif
         }
 
-        static string GetPuzzle(string path, out int matrixWidth)
+        static void DisplayPuzzle(string path, out string[] puzzleLines)
         {
+            List<string> lines = new();
             using (var reader = new StreamReader(path))
             {
-                string? firstLine = reader.ReadLine();
-                matrixWidth = firstLine!.Length;
-                string content = reader!.ReadToEnd().Replace("\r\n", string.Empty);
-                content = string.Concat(firstLine, content);
-
-                return content;
+                string? line;
+                while ((line = reader.ReadLine()) != null) 
+                {
+                    lines.Add(line);
+                    WriteLine(line);
+                }               
             }
+            puzzleLines = lines.ToArray();
+        }
+
+        static string CreatePuzzleInput(string[] puzzleLines)
+        {
+            StringBuilder sb = new();
+            foreach (var line in puzzleLines)
+                sb.Append(line);
+            return sb.ToString();
         }
 
         static string[] GetWords(string listWordSource)
